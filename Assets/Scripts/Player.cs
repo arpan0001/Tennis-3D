@@ -1,70 +1,96 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.InputSystem;
 
 public class Player : MonoBehaviour
 {
-    Vector2 moveVector;        // Stores joystick movement input
-    public Transform aimTarget;
-    float speed = 3f;          // Movement speed
-    float force = 10f;         // Force applied to the ball
-    bool hitting;              // Indicates if the player is hitting
+    public Transform aimTarget; // the target where we aim to land the ball
+    float speed = 3f; // move speed
+    float force = 13; // ball impact force
 
-    private void Update()
+    bool hitting; // boolean to know if we are hitting the ball or not 
+
+    public Transform ball; // the ball 
+    Animator animator;
+
+    Vector3 aimTargetInitialPosition; // initial position of the aiming gameObject which is the center of the opposite court
+
+    ShotManager shotManager; // reference to the shotmanager component
+    Shot currentShot; // the current shot we are playing to acces it's attributes
+
+    private void Start()
     {
-        // Get keyboard input for movement
-        float h = Input.GetAxisRaw("Horizontal");
-        float v = Input.GetAxisRaw("Vertical");
+        animator = GetComponent<Animator>(); // referennce out animator
+        aimTargetInitialPosition = aimTarget.position; // initialise the aim position to the center( where we placed it in the editor )
+        shotManager = GetComponent<ShotManager>(); // accesing our shot manager component 
+        currentShot = shotManager.topSpin; // defaulting our current shot as topspin
+    }
 
-        // Check if the player is hitting
-        if (Input.GetKeyDown(KeyCode.F))
+    void Update()
+    {
+        float h = Input.GetAxisRaw("Horizontal"); // get the horizontal axis of the keyboard
+        float v = Input.GetAxisRaw("Vertical"); // get the vertical axis of the keyboard
+
+        if (Input.GetKeyDown(KeyCode.F)) 
         {
-            hitting = true;
+            hitting = true; // we are trying to hit the ball and aim where to make it land
+            currentShot = shotManager.topSpin; // set our current shot to top spin
         }
         else if (Input.GetKeyUp(KeyCode.F))
+        {
+            hitting = false; // we let go of the key so we are not hitting anymore and this 
+        }                    // is used to alternate between moving the aim target and ourself
+
+        if (Input.GetKeyDown(KeyCode.E))
+        {
+            hitting = true; // we are trying to hit the ball and aim where to make it land
+            currentShot = shotManager.flat; // set our current shot to top spin
+        }
+        else if (Input.GetKeyUp(KeyCode.E))
         {
             hitting = false;
         }
 
-        // Combine joystick and keyboard input
-        Vector3 movementInput = new Vector3(moveVector.x + h, 0, moveVector.y + v);
 
-        // Handle aimTarget movement when hitting
-        if (hitting)
+
+        if (hitting)  // if we are trying to hit the ball
         {
-            Vector3 aimMovement = new Vector3(movementInput.x, 0, 0) * speed * 2 * Time.deltaTime;
-            aimTarget.Translate(aimMovement);  // Move aim target horizontally
+            aimTarget.Translate(new Vector3(h, 0, 0) * speed * 2 * Time.deltaTime); //translate the aiming gameObject on the court horizontallly
         }
-        // Handle player movement when not hitting
-        else if (movementInput.x != 0 || movementInput.z != 0)
+
+
+        if ((h != 0 || v != 0) && !hitting) // if we want to move and we are not hitting the ball
         {
-            Vector3 movement = new Vector3(movementInput.x, 0, movementInput.z) * speed * Time.deltaTime;
-            transform.Translate(movement);  // Move player using combined input
+            transform.Translate(new Vector3(h, 0, v) * speed * Time.deltaTime); // move on the court
         }
+
+
+
     }
 
-    // Handle collision with the ball
-   private void OnTriggerEnter(Collider other)
- {
-    if (other.CompareTag("Ball"))
+
+    private void OnTriggerEnter(Collider other)
     {
-        Rigidbody ballRigidbody = other.GetComponent<Rigidbody>();
-        
-        if (ballRigidbody != null)
+        if (other.CompareTag("Ball")) // if we collide with the ball 
         {
-            // Calculate direction from the player to the aimTarget
-            Vector3 dir = aimTarget.position - transform.position;
-            // Apply force to the ball in the direction of the aimTarget, with an upward boost
-            ballRigidbody.velocity = dir.normalized * force + new Vector3(0, 10, 0);
+            Vector3 dir = aimTarget.position - transform.position; // get the direction to where we want to send the ball
+            other.GetComponent<Rigidbody>().velocity = dir.normalized * currentShot.hitForce + new Vector3(0, currentShot.upForce, 0);
+            //add force to the ball plus some upward force according to the shot being played
+
+            Vector3 ballDir = ball.position - transform.position; // get the direction of the ball compared to us to know if it is
+            if (ballDir.x >= 0)                                   // on out right or left side 
+            {
+                animator.Play("forehand");                        // play a forhand animation if the ball is on our right
+            }
+            else                                                  // otherwise play a backhand animation 
+            {
+                animator.Play("backhand");
+            }
+
+            aimTarget.position = aimTargetInitialPosition; // reset the position of the aiming gameObject to it's original position ( center)
+
         }
     }
- }
 
 
-    // New input system callback for joystick movement
-    public void OnMove(InputAction.CallbackContext context)
-    {
-        moveVector = context.ReadValue<Vector2>();
-    }
 }
