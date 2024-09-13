@@ -4,24 +4,24 @@ using UnityEngine.InputSystem;
 
 public class Player : MonoBehaviour
 {
-    public float minX = -5f;  
-    public float maxX = 5f;   
+    public float minX = -5f;
+    public float maxX = 5f;
     float speed = 3f;
     bool hitting;
 
     public Transform ball;
-    public Transform quad;  
+    public Transform quad;
     Animator animator;
 
     ShotManager shotManager;
     Shot currentShot;
 
-    private Vector2 moveInput; 
-    private PlayerInput playerInput; 
+    private Vector2 moveInput;
+    private PlayerInput playerInput;
 
     private void Awake()
     {
-        playerInput = GetComponent<PlayerInput>(); 
+        playerInput = GetComponent<PlayerInput>();
     }
 
     private void Start()
@@ -33,10 +33,10 @@ public class Player : MonoBehaviour
 
     void Update()
     {
-        float h = Input.GetAxisRaw("Horizontal"); 
+        float h = Input.GetAxisRaw("Horizontal");
         float v = Input.GetAxisRaw("Vertical");
 
-        
+
         if (Input.GetKeyDown(KeyCode.F))
         {
             hitting = true;
@@ -51,12 +51,12 @@ public class Player : MonoBehaviour
         {
             hitting = true;
             currentShot = shotManager.flat;
-            
+
         }
         else if (Input.GetKeyUp(KeyCode.E))
         {
             hitting = false;
-           
+
         }
 
 
@@ -65,14 +65,19 @@ public class Player : MonoBehaviour
             hitting = true;
             currentShot = shotManager.flatServe;
             GetComponent<BoxCollider>().enabled = false;
+            //animator.Play("serve");
         }
         else if (Input.GetKeyUp(KeyCode.R))
         {
             hitting = false;
             GetComponent<BoxCollider>().enabled = true;
-            ball.transform.position = transform.position + new Vector 3(0.2f, 1, 0);
+            ball.transform.position = transform.position + new Vector3(0.2f, 1, 0);
+            Vector3 targetPosition = PickRandomTargetWithinQuad();
+            Vector3 directionToTarget = (targetPosition - ball.position).normalized;
+            // animator.Play("serve");
 
         }
+
 
 
         Vector3 moveDirection = new Vector3(h + moveInput.x, 0, v + moveInput.y);
@@ -84,34 +89,34 @@ public class Player : MonoBehaviour
 
     public void OnMove(InputAction.CallbackContext ctx)
     {
-        moveInput = ctx.ReadValue<Vector2>(); 
+        moveInput = ctx.ReadValue<Vector2>();
     }
 
-    
+
     Vector3 PickRandomTargetWithinQuad()
     {
-        
-        Vector3 quadSize = quad.localScale;  
-        Vector3 quadPosition = quad.position;  
 
-        
-        float quadMinX = quadPosition.x - (quadSize.x / 2);  
-        float quadMaxX = quadPosition.x + (quadSize.x / 2);  
-        float quadMinZ = quadPosition.z - (quadSize.z / 2);  
-        float quadMaxZ = quadPosition.z + (quadSize.z / 2);  
+        Vector3 quadSize = quad.localScale;
+        Vector3 quadPosition = quad.position;
 
-        
-        float randomX = Random.Range(quadMinX, quadMaxX);  
-        float randomZ = Random.Range(quadMinZ, quadMaxZ);  
 
-        return new Vector3(randomX, ball.position.y, randomZ);  
+        float quadMinX = quadPosition.x - (quadSize.x / 2);
+        float quadMaxX = quadPosition.x + (quadSize.x / 2);
+        float quadMinZ = quadPosition.z - (quadSize.z / 2);
+        float quadMaxZ = quadPosition.z + (quadSize.z / 2);
+
+
+        float randomX = Random.Range(quadMinX, quadMaxX);
+        float randomZ = Random.Range(quadMinZ, quadMaxZ);
+
+        return new Vector3(randomX, ball.position.y, randomZ);
     }
 
     private void OnTriggerEnter(Collider other)
     {
         if (other.CompareTag("Ball"))
         {
-            Vector3 targetPosition = PickRandomTargetWithinQuad();  
+            Vector3 targetPosition = PickRandomTargetWithinQuad();
             Vector3 directionToTarget = (targetPosition - ball.position).normalized;
             other.GetComponent<Rigidbody>().velocity = directionToTarget * currentShot.hitForce + new Vector3(0, currentShot.upForce, 0);
             Vector3 ballDir = ball.position - transform.position;
