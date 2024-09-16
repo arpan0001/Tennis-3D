@@ -1,26 +1,43 @@
 ﻿using System.Collections;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class Ball : MonoBehaviour
 {
     Vector3 initialPos;
+    public string hitter;
+
+    int playerScore;
+    int botScore;
+
+    [SerializeField] Text playerScoreText;
+    [SerializeField] Text botScoreText;
+
+    public bool playing = true;
+
     private Rigidbody rb;
     private Player player;
     private bool ballTossed = false;
-
-    public float tossForce = 5f; // Force applied to the ball when tossing
-
-    // Variables for double-tap detection
     private float lastTapTime = 0f;
-    private float doubleTapThreshold = 0.3f; // Maximum time between taps to consider as a double-tap
+    public float tossForce = 5f; // Force applied to the ball when tossing
+    public float doubleTapThreshold = 0.3f; // Time threshold for double tap detection
+
+    [SerializeField] Transform serveRight;  // Serve right position
+    [SerializeField] Transform serveLeft;   // Serve left position
+    private bool servedRight = true;        // To track the current serve direction
 
     private void Start()
     {
         initialPos = transform.position;
+        playerScore = 0;
+        botScore = 0;
         rb = GetComponent<Rigidbody>();
 
         // Ensure there's a Player in the scene
         player = FindObjectOfType<Player>();
+
+        // Initialize score UI
+        updateScores();
     }
 
     private void Update()
@@ -34,11 +51,7 @@ public class Ball : MonoBehaviour
         // Handle mobile touch input
         if (TouchInputDetected() && !ballTossed)
         {
-            // Check if the touch is a double-tap
-            if (IsDoubleTap())
-            {
-                TossBall();
-            }
+            TossBall();
         }
     }
 
@@ -50,27 +63,44 @@ public class Ball : MonoBehaviour
             Touch touch = Input.GetTouch(0); // Get the first touch
             if (touch.phase == TouchPhase.Began)
             {
-                return true; // Return true if touch started
+                if (Time.time - lastTapTime < doubleTapThreshold)
+                {
+                    // Double-tap detected
+                    lastTapTime = 0; // Reset for next detection
+                    TossBall();
+                    return true;
+                }
+                lastTapTime = Time.time;
             }
         }
         return false;
     }
 
-    private bool IsDoubleTap()
-    {
-        float currentTime = Time.time;
-        bool isDoubleTap = (currentTime - lastTapTime) < doubleTapThreshold;
-        lastTapTime = currentTime;
-        return isDoubleTap;
-    }
-
     private void OnCollisionEnter(Collision collision)
     {
-        // Check for collision with objects tagged as "Wall"
-        if (collision.transform.CompareTag("Wall"))
+        // Handle collisions with Wall or Out
+        if (collision.transform.CompareTag("Wall") || collision.transform.CompareTag("Out"))
         {
             rb.velocity = Vector3.zero; // Stop ball's movement
             StartCoroutine(ResetPositionAfterDelay(1f)); // Reset position after a delay
+
+            // Reset the player's position
+            player.Reset();
+
+            // Update the score
+            if (playing)
+            {
+                if (hitter == "player")
+                {
+                    playerScore++;
+                }
+                else if (hitter == "bot")
+                {
+                    botScore++;
+                }
+                playing = false;
+                updateScores(); // Update the score UI
+            }
         }
     }
 
@@ -78,8 +108,19 @@ public class Ball : MonoBehaviour
     {
         yield return new WaitForSeconds(delay);
 
-        // Reset the ball's position, velocity, and angular velocity
-        transform.position = initialPos;
+        // Adjust the ball's position based on the serve direction
+        if (servedRight)
+        {
+            transform.position = serveRight.position + new Vector3(0.2f, 1, 0); // Serve from the right
+        }
+        else
+        {
+            transform.position = serveLeft.position + new Vector3(0.2f, 1, 0);  // Serve from the left
+        }
+
+        // Toggle the serve direction
+        servedRight = !servedRight;
+
         rb.velocity = Vector3.zero;
         rb.angularVelocity = Vector3.zero;
         ballTossed = false; // Allow the ball to be tossed again
@@ -89,6 +130,8 @@ public class Ball : MonoBehaviour
         {
             player.ResetPlayerPosition();
         }
+
+        playing = true; // Ball is ready to be in play again
     }
 
     private void TossBall()
@@ -98,5 +141,38 @@ public class Ball : MonoBehaviour
         rb.angularVelocity = Vector3.zero;
         rb.AddForce(Vector3.up * tossForce, ForceMode.Impulse); // Apply the upward toss force
         ballTossed = true; // Indicate that the ball has been tossed
+
+        // Enable hitting the ball after toss
+        if (player != null)
+        {
+            player.SetCanHitBall(true);
+        }
+    }
+
+    private void OnTriggerEnter(Collider other)
+    {
+        if (other.CompareTag("Out") && playing)
+        {
+            if (hitter == "player")
+            {
+                playerScore++;
+            }
+            else if (hitter == "bot")
+            {
+                botScore++;
+            }
+            playing = false;
+            updateScores();
+        }
+    }
+
+    void updateScores()
+    {
+        // Update the UI with the current scores
+        if (playerScoreText != null && botScoreText != null)
+        {
+            playerScoreText.text = "Player : " + playerScore;
+            botScoreText.text = "Bot : " + botScore;
+        }
     }
 }

@@ -16,6 +16,11 @@ public class Player : MonoBehaviour
     ShotManager shotManager;
     Shot currentShot;
 
+    [SerializeField] Transform serveRight;
+    [SerializeField] Transform serveLeft;
+
+    bool servedRight = true;
+
     private Vector2 moveInput;
     private PlayerInput playerInput;
 
@@ -87,7 +92,6 @@ public class Player : MonoBehaviour
             transform.Translate(moveDirection * speed * Time.deltaTime);
         }
 
-        
         if (Input.GetKeyDown(KeyCode.Space))
         {
             canHitBall = true;
@@ -132,12 +136,30 @@ public class Player : MonoBehaviour
             {
                 animator.Play("forehand");
             }
+
+            ball.GetComponent<Ball>().hitter = "player";
+            ball.GetComponent<Ball>().playing = true;
         }
     }
 
     public void ResetPlayerPosition()
     {
-        transform.position = initialPos;
+        //transform.position = initialPos;
         canHitBall = false; // Disable hitting until spacebar is pressed
+    }
+
+    public void SetCanHitBall(bool value)
+    {
+        canHitBall = value;
+    }
+
+    public void Reset()
+    {
+        if(servedRight)
+             transform.position = serveLeft.position;
+        else
+            transform.position = serveRight.position;
+
+        servedRight = !servedRight;         
     }
 }
