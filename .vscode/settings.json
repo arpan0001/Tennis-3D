@@ -51,5 +51,6 @@
         "temp/": true,
         "Temp/": true
     },
-    "dotnet.defaultSolution": "Tennis 3D.sln"
+    "dotnet.defaultSolution": "Tennis 3D.sln",
+    "dotnet.preferCSharpExtension": true
 }

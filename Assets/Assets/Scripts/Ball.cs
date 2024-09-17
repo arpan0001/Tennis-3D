@@ -15,7 +15,6 @@ public class Ball : MonoBehaviour
     int botSets = 0;    
     int setsToWin = 2;  
 
-    
     [SerializeField] Text playerScoreText;
     [SerializeField] Text botScoreText;
     [SerializeField] Text playerSet1ScoreText;
@@ -46,22 +45,18 @@ public class Ball : MonoBehaviour
         botScoreIndex = 0;
         rb = GetComponent<Rigidbody>();
 
-        
         player = FindObjectOfType<Player>();
 
-        
         UpdateScores();
     }
 
     private void Update()
     {
-        
         if (Input.GetKeyDown(KeyCode.Space) && !ballTossed)
         {
             TossBall();
         }
 
-        
         if (TouchInputDetected() && !ballTossed)
         {
             TossBall();
@@ -70,16 +65,14 @@ public class Ball : MonoBehaviour
 
     private bool TouchInputDetected()
     {
-        
         if (Input.touchCount > 0)
         {
             Touch touch = Input.GetTouch(0); 
-            if (touch.phase == TouchPhase.Began)
+            if (touch.phase == TouchPhase.Began && !ballTossed) // Ensure ball hasn't been tossed yet
             {
                 if (Time.time - lastTapTime < doubleTapThreshold)
                 {
-                    
-                    lastTapTime = 0; 
+                    lastTapTime = 0; // Reset tap time after double tap
                     TossBall();
                     return true;
                 }
@@ -91,16 +84,13 @@ public class Ball : MonoBehaviour
 
     private void OnCollisionEnter(Collision collision)
     {
-        
         if (collision.transform.CompareTag("Wall") || collision.transform.CompareTag("Out"))
         {
             rb.velocity = Vector3.zero; 
             StartCoroutine(ResetPositionAfterDelay(1f)); 
 
-            
             player.Reset();
 
-            
             if (playing)
             {
                 UpdateScore();
@@ -115,7 +105,6 @@ public class Ball : MonoBehaviour
     {
         yield return new WaitForSeconds(delay);
 
-        
         if (servedRight)
         {
             transform.position = serveRight.position + new Vector3(0.2f, 1, 0); 
@@ -125,31 +114,29 @@ public class Ball : MonoBehaviour
             transform.position = serveLeft.position + new Vector3(0.2f, 1, 0);  
         }
 
-        
         servedRight = !servedRight;
 
         rb.velocity = Vector3.zero;
         rb.angularVelocity = Vector3.zero;
-        ballTossed = false; 
+        ballTossed = false; // Allow ball to be tossed again after reset
 
-        
         if (player != null)
         {
             player.ResetPlayerPosition();
         }
 
         playing = true; 
+
+        lastTapTime = 0; // Reset the double tap tracking after the ball reset
     }
 
     private void TossBall()
     {
-       
         rb.velocity = Vector3.zero;
         rb.angularVelocity = Vector3.zero;
         rb.AddForce(Vector3.up * tossForce, ForceMode.Impulse);
         ballTossed = true; 
 
-        
         if (player != null)
         {
             player.SetCanHitBall(true);
@@ -188,7 +175,6 @@ public class Ball : MonoBehaviour
 
     private void SaveSetScore()
     {
-       
         if (playerSets == 0)
         {
             playerSet1ScoreText.text = tennisScores[playerScoreIndex].ToString();
@@ -209,45 +195,41 @@ public class Ball : MonoBehaviour
         if (botScoreIndex == 0) botSets++;
     }
 
-   private void CheckForMatchWinner()
- {
-    
-    if (playerSets >= setsToWin && playerSets > botSets)
+    private void CheckForMatchWinner()
     {
-        DisplayWinner("Bot");
-    }
-    else if (botSets >= setsToWin && botSets > playerSets)
-    {
-        DisplayWinner("Player");
-    }
-    
-    else if (playerSets == 3 || botSets == 3)
-    {
-        if (playerSets > botSets)
+        if (playerSets >= setsToWin && playerSets > botSets)
+        {
+            DisplayWinner("Player");
+        }
+        else if (botSets >= setsToWin && botSets > playerSets)
         {
             DisplayWinner("Bot");
         }
-        else if (botSets > playerSets)
+        else if (playerSets == 3 || botSets == 3)
         {
-            DisplayWinner("{Player}");
+            if (playerSets > botSets)
+            {
+                DisplayWinner("Player");
+            }
+            else if (botSets > playerSets)
+            {
+                DisplayWinner("Bot");
+            }
         }
     }
- }
 
- private void DisplayWinner(string winner)
- {
-    if (winnerText != null)
+    private void DisplayWinner(string winner)
     {
-        winnerText.text = winner + " Wins!";
-    }
-    
-    playing = false;
- }
+        if (winnerText != null)
+        {
+            winnerText.text = winner + " Wins!";
+        }
 
+        playing = false;
+    }
 
     void UpdateScores()
     {
-        
         if (playerScoreText != null && botScoreText != null)
         {
             playerScoreText.text = "Player : " + tennisScores[playerScoreIndex];
