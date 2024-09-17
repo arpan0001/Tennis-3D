@@ -7,7 +7,7 @@ public class Player : MonoBehaviour
     public float maxX = 5f;
     float speed = 3f;
     bool hitting;
-    bool canHitBall = false; // Flag to control hitting
+    bool canHitBall = false; 
 
     public Transform ball;
     public Transform quad;
@@ -47,7 +47,7 @@ public class Player : MonoBehaviour
         float h = Input.GetAxisRaw("Horizontal");
         float v = Input.GetAxisRaw("Vertical");
 
-        // Only allow hitting if canHitBall is true
+       
         if (canHitBall)
         {
             if (Input.GetKeyDown(KeyCode.F))
@@ -145,7 +145,7 @@ public class Player : MonoBehaviour
     public void ResetPlayerPosition()
     {
         //transform.position = initialPos;
-        canHitBall = false; // Disable hitting until spacebar is pressed
+        canHitBall = false; 
     }
 
     public void SetCanHitBall(bool value)
