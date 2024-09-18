@@ -47,9 +47,9 @@ public class Player : MonoBehaviour
         float h = Input.GetAxisRaw("Horizontal");
         float v = Input.GetAxisRaw("Vertical");
 
-       
         if (canHitBall)
         {
+            // Handling shot selection and hitting
             if (Input.GetKeyDown(KeyCode.F))
             {
                 hitting = true;
@@ -89,9 +89,16 @@ public class Player : MonoBehaviour
         Vector3 moveDirection = new Vector3(h + moveInput.x, 0, v + moveInput.y);
         if (moveDirection != Vector3.zero && !hitting)
         {
+            // Apply movement
             transform.Translate(moveDirection * speed * Time.deltaTime);
+
+            // Clamp the player's position within the movement range
+            Vector3 clampedPosition = transform.position;
+            clampedPosition.x = Mathf.Clamp(clampedPosition.x, minX, maxX);
+            transform.position = clampedPosition;
         }
 
+        // Enable hitting when space is pressed
         if (Input.GetKeyDown(KeyCode.Space))
         {
             canHitBall = true;
