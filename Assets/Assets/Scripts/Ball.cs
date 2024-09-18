@@ -21,6 +21,10 @@ public class Ball : MonoBehaviour
     // Reference to ScoreManager
     private ScoreManager scoreManager;
 
+    // References to the GameObjects you want to disable on double tap
+    [SerializeField] private GameObject objectToDisable1;
+    [SerializeField] private GameObject objectToDisable2;
+
     private void Start()
     {
         initialPos = transform.position;
@@ -55,6 +59,17 @@ public class Ball : MonoBehaviour
                 if (Time.time - lastTapTime < doubleTapThreshold)
                 {
                     lastTapTime = 0;
+
+                    // Disable the GameObjects on double tap
+                    if (objectToDisable1 != null)
+                    {
+                        objectToDisable1.SetActive(false);
+                    }
+                    if (objectToDisable2 != null)
+                    {
+                        objectToDisable2.SetActive(false);
+                    }
+
                     TossBall();
                     return true;
                 }
