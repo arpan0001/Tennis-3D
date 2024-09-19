@@ -95,6 +95,20 @@ public class Ball : MonoBehaviour
                 playing = false;
             }
         }
+        else if (collision.transform.CompareTag("Net"))
+        {
+            rb.velocity = Vector3.zero;
+            StartCoroutine(ResetPositionAfterDelay(1f));
+
+            player.Reset();
+
+            if (playing)
+            {
+                // Use the ScoreManager to update the score due to net collision
+                scoreManager.UpdateScore(hitter, netCollision: true);
+                playing = false;
+            }
+        }
     }
 
     private IEnumerator ResetPositionAfterDelay(float delay)

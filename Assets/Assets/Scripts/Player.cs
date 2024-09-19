@@ -27,9 +27,15 @@ public class Player : MonoBehaviour
     Vector3 initialPos;
     private Rigidbody rb;
 
+    // Reference to StaminaSystem
+    private StaminaSystem staminaSystem;
+
     private void Awake()
     {
         playerInput = GetComponent<PlayerInput>();
+
+        // Find the StaminaSystem component
+        staminaSystem = GetComponent<StaminaSystem>();  // Assumes StaminaSystem is attached to the same GameObject
     }
 
     private void Start()
@@ -87,10 +93,14 @@ public class Player : MonoBehaviour
         }
 
         Vector3 moveDirection = new Vector3(h + moveInput.x, 0, v + moveInput.y);
-        if (moveDirection != Vector3.zero && !hitting)
+        
+        // Only move if there is enough stamina and the player is not hitting the ball
+        if (moveDirection != Vector3.zero && !hitting && staminaSystem.CanMove())
         {
-            // Apply movement
             transform.Translate(moveDirection * speed * Time.deltaTime);
+
+            // Drain stamina while moving
+            staminaSystem.DrainStamina();
 
             // Clamp the player's position within the movement range
             Vector3 clampedPosition = transform.position;
@@ -151,7 +161,7 @@ public class Player : MonoBehaviour
 
     public void ResetPlayerPosition()
     {
-        //transform.position = initialPos;
+        // Reset player position and disable hitting
         canHitBall = false; 
     }
 

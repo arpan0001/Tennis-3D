@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.UI;
 using TMPro; // Import the TextMeshPro namespace
 
 public class ScoreManager : MonoBehaviour
@@ -23,30 +22,30 @@ public class ScoreManager : MonoBehaviour
     [SerializeField] TextMeshProUGUI[] botSet3ScoreTexts;
     [SerializeField] TextMeshProUGUI[] winnerTexts;
 
-    public void UpdateScore(string hitter)
+    public void UpdateScore(string hitter, bool netCollision = false)
     {
-        if (hitter == "player")
+        if (netCollision)
         {
-            if (playerScoreIndex < 3)
+            // If the ball hits the net, the score goes to the opponent
+            if (hitter == "player")
             {
-                playerScoreIndex++;
+                UpdateBotScore();
             }
-            else
+            else if (hitter == "bot")
             {
-                SaveSetScore();
-                ResetScores();
+                UpdatePlayerScore();
             }
         }
-        else if (hitter == "bot")
+        else
         {
-            if (botScoreIndex < 3)
+            // Regular score update logic
+            if (hitter == "player")
             {
-                botScoreIndex++;
+                UpdatePlayerScore();
             }
-            else
+            else if (hitter == "bot")
             {
-                SaveSetScore();
-                ResetScores();
+                UpdateBotScore();
             }
         }
 
@@ -54,7 +53,35 @@ public class ScoreManager : MonoBehaviour
         CheckForMatchWinner();
     }
 
-    private void SaveSetScore()
+    private void UpdatePlayerScore()
+    {
+        if (playerScoreIndex < 3)
+        {
+            playerScoreIndex++;
+        }
+        else
+        {
+            // Player wins the game, save set score and reset scores
+            SaveSetScore("player");
+            ResetScores();
+        }
+    }
+
+    private void UpdateBotScore()
+    {
+        if (botScoreIndex < 3)
+        {
+            botScoreIndex++;
+        }
+        else
+        {
+            // Bot wins the game, save set score and reset scores
+            SaveSetScore("bot");
+            ResetScores();
+        }
+    }
+
+    private void SaveSetScore(string winner)
     {
         TextMeshProUGUI[] playerSetTexts = playerSets == 0 ? playerSet1ScoreTexts :
                                            playerSets == 1 ? playerSet2ScoreTexts : playerSet3ScoreTexts;
@@ -62,11 +89,19 @@ public class ScoreManager : MonoBehaviour
         TextMeshProUGUI[] botSetTexts = playerSets == 0 ? botSet1ScoreTexts :
                                         playerSets == 1 ? botSet2ScoreTexts : botSet3ScoreTexts;
 
+        // Update the UI with the current score for both players and bot
         UpdateAllUI(playerSetTexts, tennisScores[playerScoreIndex].ToString());
         UpdateAllUI(botSetTexts, tennisScores[botScoreIndex].ToString());
 
-        if (playerScoreIndex == 0) playerSets++;
-        if (botScoreIndex == 0) botSets++;
+        // Increment sets based on who won
+        if (winner == "player")
+        {
+            playerSets++;
+        }
+        else if (winner == "bot")
+        {
+            botSets++;
+        }
     }
 
     private void CheckForMatchWinner()
