@@ -30,6 +30,12 @@ public class Player : MonoBehaviour
     // Reference to StaminaSystem
     private StaminaSystem staminaSystem;
 
+    // Reference to ServeManager
+    private ServeManager serveManager;
+
+    // Reference to SoundManager
+    private SoundManager soundManager; // Add SoundManager reference
+
     private void Awake()
     {
         playerInput = GetComponent<PlayerInput>();
@@ -46,12 +52,24 @@ public class Player : MonoBehaviour
 
         initialPos = transform.position;
         rb = GetComponent<Rigidbody>();
+
+        // Find ServeManager in the scene or set it in the inspector
+        serveManager = FindObjectOfType<ServeManager>();
+
+        // Find SoundManager in the scene
+        soundManager = FindObjectOfType<SoundManager>(); // Assumes SoundManager is present in the scene
     }
 
     void Update()
     {
         float h = Input.GetAxisRaw("Horizontal");
         float v = Input.GetAxisRaw("Vertical");
+
+        // Check if the ball is at the bot's serve position
+        if (Vector3.Distance(ball.position, serveManager.botServePosition.position) < 0.5f)
+        {
+            canHitBall = true;  // Allow player to hit the ball when it's at the bot's serve position
+        }
 
         if (canHitBall)
         {
@@ -93,7 +111,7 @@ public class Player : MonoBehaviour
         }
 
         Vector3 moveDirection = new Vector3(h + moveInput.x, 0, v + moveInput.y);
-        
+
         // Only move if there is enough stamina and the player is not hitting the ball
         if (moveDirection != Vector3.zero && !hitting && staminaSystem.CanMove())
         {
@@ -145,6 +163,12 @@ public class Player : MonoBehaviour
             other.GetComponent<Rigidbody>().velocity = directionToTarget * currentShot.hitForce + new Vector3(0, currentShot.upForce, 0);
             Vector3 ballDir = ball.position - transform.position;
 
+            // Play hit sound when the player hits the ball
+            if (soundManager != null)
+            {
+                soundManager.PlayHitSoundWithDelay(0f); // 1 second delay before playing the hit sound
+            }
+
             if (ballDir.x >= 0)
             {
                 animator.Play("backhand");
@@ -172,8 +196,8 @@ public class Player : MonoBehaviour
 
     public void Reset()
     {
-        if(servedRight)
-             transform.position = serveLeft.position;
+        if (servedRight)
+            transform.position = serveLeft.position;
         else
             transform.position = serveRight.position;
 

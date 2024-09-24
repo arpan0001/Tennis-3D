@@ -1,11 +1,11 @@
 ﻿using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class Ball : MonoBehaviour
 {
     Vector3 initialPos;
     public string hitter;
-
     public bool playing = true;
     private Rigidbody rb;
     private Player player;
@@ -14,12 +14,14 @@ public class Ball : MonoBehaviour
     public float tossForce = 5f;
     public float doubleTapThreshold = 0.3f;
 
-    [SerializeField] Transform serveRight;
-    [SerializeField] Transform serveLeft;
-    private bool servedRight = true;
+    // Reference to ServeManager
+    private ServeManager serveManager;
 
     // Reference to ScoreManager
     private ScoreManager scoreManager;
+
+    // Reference to SoundManager
+    private SoundManager soundManager;
 
     // References to the GameObjects you want to disable on double tap
     [SerializeField] private GameObject objectToDisable1;
@@ -29,11 +31,10 @@ public class Ball : MonoBehaviour
     {
         initialPos = transform.position;
         rb = GetComponent<Rigidbody>();
-
         player = FindObjectOfType<Player>();
-
-        // Find the ScoreManager instance
         scoreManager = FindObjectOfType<ScoreManager>();
+        serveManager = FindObjectOfType<ServeManager>(); // Find ServeManager in the scene
+        soundManager = FindObjectOfType<SoundManager>(); // Find SoundManager in the scene
     }
 
     private void Update()
@@ -51,6 +52,12 @@ public class Ball : MonoBehaviour
 
     private bool TouchInputDetected()
     {
+        // Check if the ball is at the bot's serve position
+        if (Vector3.Distance(transform.position, serveManager.botServePosition.position) < 0.5f)
+        {
+            return false; // Disable double tap if ball is at bot's serve position
+        }
+
         if (Input.touchCount > 0)
         {
             Touch touch = Input.GetTouch(0);
@@ -81,33 +88,48 @@ public class Ball : MonoBehaviour
 
     private void OnCollisionEnter(Collision collision)
     {
+        // Play collision sound when ball collides with a BoxCollider
+        if (collision.collider is BoxCollider)
+        {
+            if (soundManager != null)
+            {
+                soundManager.PlayCollisionSound(); // Play the collision sound
+            }
+        }
+
         if (collision.transform.CompareTag("Wall") || collision.transform.CompareTag("Out"))
         {
-            rb.velocity = Vector3.zero;
-            StartCoroutine(ResetPositionAfterDelay(1f));
-
-            player.Reset();
-
-            if (playing)
-            {
-                // Use the ScoreManager to update the score
-                scoreManager.UpdateScore(hitter);
-                playing = false;
-            }
+            HandleBallOut();
         }
         else if (collision.transform.CompareTag("Net"))
         {
-            rb.velocity = Vector3.zero;
-            StartCoroutine(ResetPositionAfterDelay(1f));
+            HandleBallNetCollision();
+        }
+    }
 
-            player.Reset();
+    private void HandleBallOut()
+    {
+        rb.velocity = Vector3.zero;
+        StartCoroutine(ResetPositionAfterDelay(1f));
+        player.Reset();
 
-            if (playing)
-            {
-                // Use the ScoreManager to update the score due to net collision
-                scoreManager.UpdateScore(hitter, netCollision: true);
-                playing = false;
-            }
+        if (playing)
+        {
+            scoreManager.UpdateScore(hitter);
+            playing = false; // Set playing to false when a point is scored
+        }
+    }
+
+    private void HandleBallNetCollision()
+    {
+        rb.velocity = Vector3.zero;
+        StartCoroutine(ResetPositionAfterDelay(1f));
+        player.Reset();
+
+        if (playing)
+        {
+            scoreManager.UpdateScore(hitter, netCollision: true);
+            playing = false; // Set playing to false when a point is scored
         }
     }
 
@@ -115,16 +137,8 @@ public class Ball : MonoBehaviour
     {
         yield return new WaitForSeconds(delay);
 
-        if (servedRight)
-        {
-            transform.position = serveRight.position + new Vector3(0.2f, 1, 0);
-        }
-        else
-        {
-            transform.position = serveLeft.position + new Vector3(0.2f, 1, 0);
-        }
-
-        servedRight = !servedRight;
+        // Get the next serve position from ServeManager
+        transform.position = serveManager.GetNextServePosition();
 
         rb.velocity = Vector3.zero;
         rb.angularVelocity = Vector3.zero;
@@ -136,7 +150,6 @@ public class Ball : MonoBehaviour
         }
 
         playing = true;
-
         lastTapTime = 0;
     }
 
@@ -150,6 +163,18 @@ public class Ball : MonoBehaviour
         if (player != null)
         {
             player.SetCanHitBall(true);
+        }
+    }
+
+    public void ResetBall()
+    {
+        rb.velocity = Vector3.zero;
+        rb.angularVelocity = Vector3.zero;
+        ballTossed = false;
+
+        if (player != null)
+        {
+            player.SetCanHitBall(false);
         }
     }
 }
