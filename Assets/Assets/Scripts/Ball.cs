@@ -14,16 +14,10 @@ public class Ball : MonoBehaviour
     public float tossForce = 5f;
     public float doubleTapThreshold = 0.3f;
 
-    // Reference to ServeManager
-    private ServeManager serveManager;
-
-    // Reference to ScoreManager
+    private ServeManager serveManager; // Reference to ServeManager
     private ScoreManager scoreManager;
-
-    // Reference to SoundManager
     private SoundManager soundManager;
 
-    // References to the GameObjects you want to disable on double tap
     [SerializeField] private GameObject objectToDisable1;
     [SerializeField] private GameObject objectToDisable2;
 
@@ -33,29 +27,36 @@ public class Ball : MonoBehaviour
         rb = GetComponent<Rigidbody>();
         player = FindObjectOfType<Player>();
         scoreManager = FindObjectOfType<ScoreManager>();
-        serveManager = FindObjectOfType<ServeManager>(); // Find ServeManager in the scene
-        soundManager = FindObjectOfType<SoundManager>(); // Find SoundManager in the scene
+        serveManager = FindObjectOfType<ServeManager>();  // Find ServeManager instance
+        soundManager = FindObjectOfType<SoundManager>();
     }
 
     private void Update()
     {
-        if (Input.GetKeyDown(KeyCode.Space) && !ballTossed)
+        if (!serveManager.IsBotServing)  // Ensure only player can toss when not bot's turn
         {
-            TossBall();
-        }
+            if (Input.GetKeyDown(KeyCode.Space) && !ballTossed)
+            {
+                TossBall();
+            }
 
-        if (TouchInputDetected() && !ballTossed)
-        {
-            TossBall();
+            if (TouchInputDetected() && !ballTossed)
+            {
+                TossBall();
+            }
         }
     }
 
     private bool TouchInputDetected()
     {
-        // Check if the ball is at the bot's serve position
+        if (serveManager.IsBotServing)  // Prevent toss when bot is serving
+        {
+            return false;
+        }
+
         if (Vector3.Distance(transform.position, serveManager.botServePosition.position) < 0.5f)
         {
-            return false; // Disable double tap if ball is at bot's serve position
+            return false; 
         }
 
         if (Input.touchCount > 0)
@@ -67,7 +68,6 @@ public class Ball : MonoBehaviour
                 {
                     lastTapTime = 0;
 
-                    // Disable the GameObjects on double tap
                     if (objectToDisable1 != null)
                     {
                         objectToDisable1.SetActive(false);
@@ -88,12 +88,11 @@ public class Ball : MonoBehaviour
 
     private void OnCollisionEnter(Collision collision)
     {
-        // Play collision sound when ball collides with a BoxCollider
         if (collision.collider is BoxCollider)
         {
             if (soundManager != null)
             {
-                soundManager.PlayCollisionSound(); // Play the collision sound
+                soundManager.PlayCollisionSound(); 
             }
         }
 
@@ -116,7 +115,7 @@ public class Ball : MonoBehaviour
         if (playing)
         {
             scoreManager.UpdateScore(hitter);
-            playing = false; // Set playing to false when a point is scored
+            playing = false; 
         }
     }
 
@@ -129,7 +128,7 @@ public class Ball : MonoBehaviour
         if (playing)
         {
             scoreManager.UpdateScore(hitter, netCollision: true);
-            playing = false; // Set playing to false when a point is scored
+            playing = false; 
         }
     }
 
@@ -137,7 +136,6 @@ public class Ball : MonoBehaviour
     {
         yield return new WaitForSeconds(delay);
 
-        // Get the next serve position from ServeManager
         transform.position = serveManager.GetNextServePosition();
 
         rb.velocity = Vector3.zero;

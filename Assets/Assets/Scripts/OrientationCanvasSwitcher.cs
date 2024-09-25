@@ -14,7 +14,7 @@ public class OrientationCanvasSwitcher : MonoBehaviour
 
     void Update()
     {
-        // If running on a PC platform, don't change canvases based on orientation
+       
         if (IsRunningOnPC())
             return;
 
@@ -30,7 +30,7 @@ public class OrientationCanvasSwitcher : MonoBehaviour
 
         if (IsRunningOnPC())
         {
-            // For PC, you could set one canvas as default or manage it differently
+            
             portraitCanvas.SetActive(false);
             landscapeCanvas.SetActive(true);
         }
@@ -49,7 +49,7 @@ public class OrientationCanvasSwitcher : MonoBehaviour
         }
     }
 
-    // Checks if the current platform is a PC (Windows, Mac, Linux)
+    
     private bool IsRunningOnPC()
     {
         return Application.platform == RuntimePlatform.WindowsPlayer ||

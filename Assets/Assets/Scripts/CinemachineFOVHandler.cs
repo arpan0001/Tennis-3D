@@ -6,8 +6,8 @@ public class CinemachineFOVHandler : MonoBehaviour
     [SerializeField] private CinemachineVirtualCamera cinemachineCamera;
 
     [Header("FOV Settings")]
-    [SerializeField] private float landscapeFOV = 60f; // FOV for landscape mode
-    [SerializeField] private float portraitFOV = 50f;  // FOV for portrait mode
+    [SerializeField] private float landscapeFOV = 60f;
+    [SerializeField] private float portraitFOV = 50f;  
 
     private bool isLandscape;
 
@@ -18,7 +18,7 @@ public class CinemachineFOVHandler : MonoBehaviour
             cinemachineCamera = GetComponent<CinemachineVirtualCamera>();
         }
         
-        UpdateFOV(); // Set the initial FOV based on the current orientation
+        UpdateFOV(); 
     }
 
     void Update()

@@ -26,38 +26,29 @@ public class Player : MonoBehaviour
 
     Vector3 initialPos;
     private Rigidbody rb;
-
-    // Reference to StaminaSystem
     private StaminaSystem staminaSystem;
-
-    // Reference to ServeManager
     private ServeManager serveManager;
+    private SoundManager soundManager; 
 
-    // Reference to SoundManager
-    private SoundManager soundManager; // Add SoundManager reference
+    private int shotCounter = 0;  
 
     private void Awake()
     {
         playerInput = GetComponent<PlayerInput>();
-
-        // Find the StaminaSystem component
-        staminaSystem = GetComponent<StaminaSystem>();  // Assumes StaminaSystem is attached to the same GameObject
+        staminaSystem = GetComponent<StaminaSystem>();  
     }
 
     private void Start()
     {
         animator = GetComponent<Animator>();
         shotManager = GetComponent<ShotManager>();
-        currentShot = shotManager.topSpin;
+        currentShot = shotManager.topSpin;  
 
         initialPos = transform.position;
         rb = GetComponent<Rigidbody>();
 
-        // Find ServeManager in the scene or set it in the inspector
         serveManager = FindObjectOfType<ServeManager>();
-
-        // Find SoundManager in the scene
-        soundManager = FindObjectOfType<SoundManager>(); // Assumes SoundManager is present in the scene
+        soundManager = FindObjectOfType<SoundManager>();
     }
 
     void Update()
@@ -65,68 +56,24 @@ public class Player : MonoBehaviour
         float h = Input.GetAxisRaw("Horizontal");
         float v = Input.GetAxisRaw("Vertical");
 
-        // Check if the ball is at the bot's serve position
         if (Vector3.Distance(ball.position, serveManager.botServePosition.position) < 0.5f)
         {
-            canHitBall = true;  // Allow player to hit the ball when it's at the bot's serve position
-        }
-
-        if (canHitBall)
-        {
-            // Handling shot selection and hitting
-            if (Input.GetKeyDown(KeyCode.F))
-            {
-                hitting = true;
-                currentShot = shotManager.topSpin;
-            }
-            else if (Input.GetKeyUp(KeyCode.F))
-            {
-                hitting = false;
-            }
-
-            if (Input.GetKeyDown(KeyCode.E))
-            {
-                hitting = true;
-                currentShot = shotManager.flat;
-            }
-            else if (Input.GetKeyUp(KeyCode.E))
-            {
-                hitting = false;
-            }
-
-            if (Input.GetKeyDown(KeyCode.R))
-            {
-                hitting = true;
-                currentShot = shotManager.flatServe;
-                GetComponent<BoxCollider>().enabled = false;
-            }
-            else if (Input.GetKeyUp(KeyCode.R))
-            {
-                hitting = false;
-                GetComponent<BoxCollider>().enabled = true;
-                ball.transform.position = transform.position + new Vector3(0.2f, 1, 0);
-                Vector3 targetPosition = PickRandomTargetWithinQuad();
-                Vector3 directionToTarget = (targetPosition - ball.position).normalized;
-            }
+            canHitBall = true;  
         }
 
         Vector3 moveDirection = new Vector3(h + moveInput.x, 0, v + moveInput.y);
 
-        // Only move if there is enough stamina and the player is not hitting the ball
         if (moveDirection != Vector3.zero && !hitting && staminaSystem.CanMove())
         {
             transform.Translate(moveDirection * speed * Time.deltaTime);
 
-            // Drain stamina while moving
             staminaSystem.DrainStamina();
 
-            // Clamp the player's position within the movement range
             Vector3 clampedPosition = transform.position;
             clampedPosition.x = Mathf.Clamp(clampedPosition.x, minX, maxX);
             transform.position = clampedPosition;
         }
 
-        // Enable hitting when space is pressed
         if (Input.GetKeyDown(KeyCode.Space))
         {
             canHitBall = true;
@@ -158,15 +105,27 @@ public class Player : MonoBehaviour
     {
         if (other.CompareTag("Ball") && canHitBall)
         {
+            
+            shotCounter++;
+
+            
+            if (shotCounter % 4 == 0)
+            {
+                currentShot = shotManager.flat;
+            }
+            else
+            {
+                currentShot = shotManager.topSpin;
+            }
+
             Vector3 targetPosition = PickRandomTargetWithinQuad();
             Vector3 directionToTarget = (targetPosition - ball.position).normalized;
             other.GetComponent<Rigidbody>().velocity = directionToTarget * currentShot.hitForce + new Vector3(0, currentShot.upForce, 0);
             Vector3 ballDir = ball.position - transform.position;
 
-            // Play hit sound when the player hits the ball
             if (soundManager != null)
             {
-                soundManager.PlayHitSoundWithDelay(0f); // 1 second delay before playing the hit sound
+                soundManager.PlayHitSoundWithDelay(0f); 
             }
 
             if (ballDir.x >= 0)
@@ -185,7 +144,6 @@ public class Player : MonoBehaviour
 
     public void ResetPlayerPosition()
     {
-        // Reset player position and disable hitting
         canHitBall = false; 
     }
 

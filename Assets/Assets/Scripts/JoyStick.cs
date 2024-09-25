@@ -7,7 +7,7 @@ using UnityEngine.InputSystem.OnScreen;
 [AddComponentMenu("Input/Floating On-Screen Stick")]
 public class FloatingOnScreenStick : OnScreenControl, IPointerDownHandler, IPointerUpHandler, IDragHandler
 {
-    public Vector2 fixedResetPosition; // Define a fixed reset position
+    public Vector2 fixedResetPosition; 
 
     public void OnPointerDown(PointerEventData eventData)
     {
@@ -35,7 +35,7 @@ public class FloatingOnScreenStick : OnScreenControl, IPointerDownHandler, IPoin
 
     public void OnPointerUp(PointerEventData eventData)
     {
-        // Set the joystick back to the fixed position
+        
         m_JoystickTransform.anchoredPosition = fixedResetPosition;
         SendValueToControl(Vector2.zero);
     }
@@ -44,10 +44,10 @@ public class FloatingOnScreenStick : OnScreenControl, IPointerDownHandler, IPoin
     {
         m_StartPos = ((RectTransform)transform).anchoredPosition;
 
-        // Initialize fixedResetPosition to a default or set it in the inspector
+        
         if (fixedResetPosition == Vector2.zero)
         {
-            fixedResetPosition = m_StartPos; // Default to start position
+            fixedResetPosition = m_StartPos; 
         }
     }
 

@@ -14,20 +14,20 @@ public class Bot : MonoBehaviour
     Vector3 targetPosition;
 
     ShotManager shotManager;
-    ServeManager serveManager; // Reference to ServeManager
-    Ball ballScript;           // Reference to Ball script
+    ServeManager serveManager; 
+    Ball ballScript;           
 
-    public float detectionRange = 10f; // Range within which the bot starts following the ball
+    public float detectionRange = 10f; 
 
-    private int topspinCount = 0; // Counter for topspin shots
-    private int shotCounter = 0;  // Counter for counting the number of successful shots
+    private int topspinCount = 0; 
+    private int shotCounter = 0;  
 
-    public Transform botServePosition; // Bot's serve position
-    public float serveTossHeight = 10f; // Height for the ball toss during serve
-    public float serveDelay = 1.5f; // Delay before hitting the ball after toss
-    private bool isServing = false; // To check if the bot is serving
+    public Transform botServePosition; 
+    public float serveTossHeight = 10f; 
+    public float serveDelay = 1.5f; 
+    private bool isServing = false; 
 
-    // Reference to SoundManager
+    
     private SoundManager soundManager;
 
     void Start()
@@ -35,46 +35,46 @@ public class Bot : MonoBehaviour
         targetPosition = transform.position;
         animator = GetComponent<Animator>();
         shotManager = GetComponent<ShotManager>();
-        serveManager = FindObjectOfType<ServeManager>(); // Get ServeManager component
-        ballScript = ball.GetComponent<Ball>(); // Get Ball component
+        serveManager = FindObjectOfType<ServeManager>(); 
+        ballScript = ball.GetComponent<Ball>(); 
 
-        // Get SoundManager component
-        soundManager = FindObjectOfType<SoundManager>(); // Assumes SoundManager is present in the scene
+        
+        soundManager = FindObjectOfType<SoundManager>(); 
     }
 
     void Update()
     {
-        // Disable the bot's serve position if it's the player's turn to serve
+        
         botServePosition.gameObject.SetActive(!serveManager.IsBotServing);
 
-        if (IsBallWithinRange() && !isServing) // Only calculate position and speed if ball is within range
+        if (IsBallWithinRange() && !isServing) 
         {
             Move();
         }
 
-        // Handle serving logic
+        
         if (IsBallAtServePosition() && !isServing && serveManager.IsBotServing)
         {
-            StartCoroutine(HandleBotServe()); // Start the serve process
+            StartCoroutine(HandleBotServe()); 
         }
     }
 
     bool IsBallWithinRange()
     {
         float distanceToBall = Vector3.Distance(transform.position, ball.position);
-        return distanceToBall <= detectionRange; // Check if ball is within detection range
+        return distanceToBall <= detectionRange; 
     }
 
     bool IsBallAtServePosition()
     {
-        // Check if the ball is close to the bot's serve position
+        
         float distanceToServePosition = Vector3.Distance(ball.position, botServePosition.position);
-        return distanceToServePosition < 0.5f; // Adjust the threshold as needed
+        return distanceToServePosition < 0.5f; 
     }
 
     void Move()
     {
-        // Calculate movement only if the ball is within range
+        
         targetPosition.x = ball.position.x;
         transform.position = Vector3.MoveTowards(transform.position, targetPosition, speed * Time.deltaTime);
     }
@@ -87,51 +87,51 @@ public class Bot : MonoBehaviour
 
     Shot PickShot()
     {
-        // Bot picks 4 topspins, then 1 flat, then repeats the pattern
+        
         if (topspinCount < 4)
         {
             topspinCount++;
-            return shotManager.topSpin; // Pick topspin
+            return shotManager.topSpin; 
         }
         else
         {
-            topspinCount = 0; // Reset the counter after picking a flat shot
-            return shotManager.flat; // Pick flat shot
+            topspinCount = 0; 
+            return shotManager.flat; 
         }
     }
 
-    // Coroutine to handle the serve process
+    
     IEnumerator HandleBotServe()
     {
-        isServing = true; // Set serving flag to true
+        isServing = true; 
 
-        // Move the bot to the serve position
-        targetPosition = botServePosition.position; // Set target position to serve position
-        while (Vector3.Distance(transform.position, targetPosition) > 0.1f) // Move until close enough
+        
+        targetPosition = botServePosition.position; 
+        while (Vector3.Distance(transform.position, targetPosition) > 0.1f) 
         {
             transform.position = Vector3.MoveTowards(transform.position, targetPosition, speed * Time.deltaTime);
-            yield return null; // Wait for the next frame
+            yield return null; 
         }
 
-        // Ball toss logic
-        ball.position = botServePosition.position; // Set ball to the serve position
-        ball.GetComponent<Rigidbody>().velocity = new Vector3(0, serveTossHeight, 0); // Toss the ball upwards
+        
+        ball.position = botServePosition.position; 
+        ball.GetComponent<Rigidbody>().velocity = new Vector3(0, serveTossHeight, 0); 
 
-        yield return new WaitForSeconds(serveDelay); // Wait before the bot hits the ball
+        yield return new WaitForSeconds(serveDelay); 
 
-        // Determine direction for the shot
+        
         Vector3 ballDir = ball.position - transform.position;
-        Shot currentShot = PickShot(); // Pick the correct shot based on the sequence
-        Vector3 dir = PickTarget() - transform.position; // Pick a target
+        Shot currentShot = PickShot(); 
+        Vector3 dir = PickTarget() - transform.position; 
         ball.GetComponent<Rigidbody>().velocity = dir.normalized * currentShot.hitForce + new Vector3(0, currentShot.upForce, 0); // Apply velocity to the ball
 
-        // Play hit sound when the bot hits the ball
+        
         if (soundManager != null)
         {
-            soundManager.PlayHitSoundWithDelay(1f); // 1 second delay before playing the hit sound
+            soundManager.PlayHitSoundWithDelay(0f); 
         }
 
-        // Play appropriate animation for serving
+        
         if (ballDir.x >= 0)
         {
             animator.Play("forehand");
@@ -141,34 +141,34 @@ public class Bot : MonoBehaviour
             animator.Play("backhand");
         }
 
-        ballScript.hitter = "bot"; // Set the bot as the hitter
+        ballScript.hitter = "bot"; 
 
-        isServing = false; // Reset serving flag after the serve
+        isServing = false; 
     }
 
     private void OnTriggerEnter(Collider other)
     {
-        if (other.CompareTag("Ball") && !isServing) // Only allow normal shots if the bot is not serving
+        if (other.CompareTag("Ball") && !isServing) 
         {
-            shotCounter++; // Increment shot counter
+            shotCounter++; 
 
-            // If shot counter reaches 7, bot misses the ball
+            
             if (shotCounter == 7)
             {
-                shotCounter = 0; // Reset the counter after missing the ball
-                Debug.Log("Bot missed the ball!"); // Debug log to show the bot missed the ball
-                return; // Skip the shot to simulate a miss
+                shotCounter = 0; 
+                Debug.Log("Bot missed the ball!"); 
+                return; 
             }
 
-            // Bot hits the ball
-            Shot currentShot = PickShot(); // Pick the correct shot based on the sequence
-            Vector3 dir = PickTarget() - transform.position; // Pick a target
+            
+            Shot currentShot = PickShot(); 
+            Vector3 dir = PickTarget() - transform.position; 
             other.GetComponent<Rigidbody>().velocity = dir.normalized * currentShot.hitForce + new Vector3(0, currentShot.upForce, 0); // Apply velocity to the ball
 
-            // Play hit sound when the bot hits the ball
+            
             if (soundManager != null)
             {
-                soundManager.PlayHitSoundWithDelay(0f); // 1 second delay before playing the hit sound
+                soundManager.PlayHitSoundWithDelay(0f); 
             }
 
             Vector3 ballDir = ball.position - transform.position;
@@ -181,7 +181,7 @@ public class Bot : MonoBehaviour
                 animator.Play("backhand");
             }
 
-            ballScript.hitter = "bot"; // Set the bot as the hitter
+            ballScript.hitter = "bot"; 
         }
     }
 }
