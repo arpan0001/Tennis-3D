@@ -4,6 +4,7 @@ public class OrientationCanvasSwitcher : MonoBehaviour
 {
     public GameObject portraitCanvas;
     public GameObject landscapeCanvas;
+    public GameObject pcCanvas; // New public GameObject for PC canvas
 
     private ScreenOrientation lastOrientation;
 
@@ -14,7 +15,6 @@ public class OrientationCanvasSwitcher : MonoBehaviour
 
     void Update()
     {
-       
         if (IsRunningOnPC())
             return;
 
@@ -30,9 +30,10 @@ public class OrientationCanvasSwitcher : MonoBehaviour
 
         if (IsRunningOnPC())
         {
-            
+            // Show the PC canvas and hide the others
+            pcCanvas.SetActive(true);
             portraitCanvas.SetActive(false);
-            landscapeCanvas.SetActive(true);
+            landscapeCanvas.SetActive(false);
         }
         else
         {
@@ -49,7 +50,6 @@ public class OrientationCanvasSwitcher : MonoBehaviour
         }
     }
 
-    
     private bool IsRunningOnPC()
     {
         return Application.platform == RuntimePlatform.WindowsPlayer ||

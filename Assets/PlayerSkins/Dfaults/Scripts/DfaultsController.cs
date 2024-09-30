@@ -57,10 +57,9 @@ namespace Fergicide
 
 		private static void SetupMaterial(DfaultsController _this)
 		{
-
 			if (!SanityChecks(_this))
 			{
-				Debug.LogError("SetupMaterial error!  DfaultsControl script has been disabled.  Fix error and re-enable the script.");
+				Debug.LogError("SetupMaterial error! DfaultsController script has been disabled. Fix error and re-enable the script.");
 				_this.enabled = false;
 				return;
 			}
@@ -81,7 +80,7 @@ namespace Fergicide
 			if (_this.dfaultsConfig.seed == 0 && _this.dfaultsConfig.saveRandomSeed) _this.dfaultsConfig.seed = Random.value;
 			_this.dfaultsConfigSeed = (_this.dfaultsConfig.seed == 0) ? Random.value : _this.dfaultsConfig.seed;
 
-			// PerRenderedData.
+			// PerRendererData.
 			UpdateProperties(_this);
 
 			// Cleanup - for build, disable script once it has run.
@@ -104,9 +103,17 @@ namespace Fergicide
 
 		private static void UpdateProperties(DfaultsController _this)
 		{
-			// PerRenderedData.
+			// PerRendererData
 			for (int i = 0; i < _this.renderers.Length; i++)
+			{
+				if (_this.renderers[i] == null)
+				{
+					Debug.LogWarning($"Renderer at index {i} is null.");
+					continue;  // Skip this iteration if the renderer is null
+				}
+
 				_this.renderers[i].GetPropertyBlock(_this.mpb);
+			}
 
 			_this.mpb.SetColor(propertiesToID[0], _this.dfaultsConfig.bodyUpperColor);
 			_this.mpb.SetVector(propertiesToID[1], _this.dfaultsConfig.tilingAndOffset);
@@ -132,7 +139,12 @@ namespace Fergicide
 			_this.mpb.SetFloat(propertiesToID[21], _this.dfaultsConfig.bodyLowerUnder ? 1 : 0);
 
 			for (int i = 0; i < _this.renderers.Length; i++)
-				_this.renderers[i].SetPropertyBlock(_this.mpb);
+			{
+				if (_this.renderers[i] != null)
+				{
+					_this.renderers[i].SetPropertyBlock(_this.mpb);
+				}
+			}
 		}
 
 		private static void SetupPropertiesToID()
@@ -162,8 +174,7 @@ namespace Fergicide
 					Debug.LogWarning("Dfaults material 'Instancing' checkbox must be ticked."); break;
 			}
 
-			if (error == Error.none) return true;
-			else return false;
+			return error == Error.none;
 		}
 
 		private static Renderer[] GetRenderers(DfaultsController _this)

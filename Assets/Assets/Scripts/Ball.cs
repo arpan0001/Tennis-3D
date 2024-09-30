@@ -20,6 +20,8 @@ public class Ball : MonoBehaviour
 
     [SerializeField] private GameObject objectToDisable1;
     [SerializeField] private GameObject objectToDisable2;
+    [SerializeField] private GameObject objectToDisableOnSpace1; // New field for the first object to disable
+    // New field for the third object to disable
 
     private void Start()
     {
@@ -38,6 +40,7 @@ public class Ball : MonoBehaviour
             if (Input.GetKeyDown(KeyCode.Space) && !ballTossed)
             {
                 TossBall();
+                DisableObjectsOnSpace(); // Call the method to disable the objects
             }
 
             if (TouchInputDetected() && !ballTossed)
@@ -45,6 +48,16 @@ public class Ball : MonoBehaviour
                 TossBall();
             }
         }
+    }
+
+    private void DisableObjectsOnSpace()
+    {
+        // Disable the specified objects when space is pressed
+        if (objectToDisableOnSpace1 != null)
+        {
+            objectToDisableOnSpace1.SetActive(false);
+        }
+        
     }
 
     private bool TouchInputDetected()
