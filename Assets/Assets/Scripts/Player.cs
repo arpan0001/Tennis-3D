@@ -67,7 +67,8 @@ public class Player : MonoBehaviour
         {
             transform.Translate(moveDirection * speed * Time.deltaTime);
 
-            staminaSystem.DrainStamina();
+            staminaSystem.DrainStamina(1f);
+
 
             Vector3 clampedPosition = transform.position;
             clampedPosition.x = Mathf.Clamp(clampedPosition.x, minX, maxX);
@@ -83,6 +84,8 @@ public class Player : MonoBehaviour
     public void OnMove(InputAction.CallbackContext ctx)
     {
         moveInput = ctx.ReadValue<Vector2>();
+        staminaSystem.DrainStamina(1f);
+
     }
 
     Vector3 PickRandomTargetWithinQuad()

@@ -14,33 +14,32 @@ public class Ball : MonoBehaviour
     public float tossForce = 5f;
     public float doubleTapThreshold = 0.3f;
 
-    private ServeManager serveManager; // Reference to ServeManager
+    private ServeManager serveManager; 
     private ScoreManager scoreManager;
     private SoundManager soundManager;
 
     [SerializeField] private GameObject objectToDisable1;
     [SerializeField] private GameObject objectToDisable2;
-    [SerializeField] private GameObject objectToDisableOnSpace1; // New field for the first object to disable
-    // New field for the third object to disable
-
+    [SerializeField] private GameObject objectToDisableOnSpace1; 
+    
     private void Start()
     {
         initialPos = transform.position;
         rb = GetComponent<Rigidbody>();
         player = FindObjectOfType<Player>();
         scoreManager = FindObjectOfType<ScoreManager>();
-        serveManager = FindObjectOfType<ServeManager>();  // Find ServeManager instance
+        serveManager = FindObjectOfType<ServeManager>();  
         soundManager = FindObjectOfType<SoundManager>();
     }
 
     private void Update()
     {
-        if (!serveManager.IsBotServing)  // Ensure only player can toss when not bot's turn
+        if (!serveManager.IsBotServing)  
         {
             if (Input.GetKeyDown(KeyCode.Space) && !ballTossed)
             {
                 TossBall();
-                DisableObjectsOnSpace(); // Call the method to disable the objects
+                DisableObjectsOnSpace();
             }
 
             if (TouchInputDetected() && !ballTossed)
@@ -52,7 +51,7 @@ public class Ball : MonoBehaviour
 
     private void DisableObjectsOnSpace()
     {
-        // Disable the specified objects when space is pressed
+        
         if (objectToDisableOnSpace1 != null)
         {
             objectToDisableOnSpace1.SetActive(false);
@@ -62,7 +61,7 @@ public class Ball : MonoBehaviour
 
     private bool TouchInputDetected()
     {
-        if (serveManager.IsBotServing)  // Prevent toss when bot is serving
+        if (serveManager.IsBotServing)  
         {
             return false;
         }

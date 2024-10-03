@@ -34,12 +34,12 @@ public class ScoreManager : MonoBehaviour
 
     [SerializeField] Button tryAgainButton3; 
 
-    // Reference to ReactToUnity
+    
     private ReactToUnity reactToUnity;
 
     void Start()
     {
-        reactToUnity = ReactToUnity.instance; // Get reference to ReactToUnity instance
+        reactToUnity = ReactToUnity.instance; 
 
         tryAgainButton1.gameObject.SetActive(false);
         tryAgainButton2.gameObject.SetActive(false);
@@ -145,12 +145,14 @@ public class ScoreManager : MonoBehaviour
     {
         UpdateAllUI(winnerTexts, winner + " Wins!");
 
-        // Call GameOver when a winner is displayed
+        
         reactToUnity?.OnGameOver();
 
         tryAgainButton1.gameObject.SetActive(true);
         tryAgainButton2.gameObject.SetActive(true);
         tryAgainButton3.gameObject.SetActive(true);
+
+        
     }
 
     private void ResetScores()
