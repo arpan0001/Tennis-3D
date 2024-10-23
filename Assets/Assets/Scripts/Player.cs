@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.InputSystem;
+using System.Collections;  // Needed for Coroutines
 
 public class Player : MonoBehaviour
 {
@@ -7,7 +8,7 @@ public class Player : MonoBehaviour
     public float maxX = 5f;
     float speed = 3f;
     bool hitting;
-    bool canHitBall = false; 
+    bool canHitBall = false;
 
     public Transform ball;
     public Transform quad;
@@ -28,27 +29,40 @@ public class Player : MonoBehaviour
     private Rigidbody rb;
     private StaminaSystem staminaSystem;
     private ServeManager serveManager;
-    private SoundManager soundManager; 
+    private SoundManager soundManager;
 
-    private int shotCounter = 0;  
+    private int shotCounter = 0;
+
+    // References to the GameObjects
+    [SerializeField] private GameObject objectToDisable;
+    [SerializeField] private GameObject object2;
+
+    // Delay in seconds before enabling object2
+    [SerializeField] private float enableDelay = 1f;
+
+    // Reference to the CameraShake script
+    private CameraShake cameraShake;
 
     private void Awake()
     {
         playerInput = GetComponent<PlayerInput>();
-        staminaSystem = GetComponent<StaminaSystem>();  
+        staminaSystem = GetComponent<StaminaSystem>();
     }
 
     private void Start()
     {
         animator = GetComponent<Animator>();
         shotManager = GetComponent<ShotManager>();
-        currentShot = shotManager.topSpin;  
+        currentShot = shotManager.topSpin;
 
         initialPos = transform.position;
         rb = GetComponent<Rigidbody>();
 
         serveManager = FindObjectOfType<ServeManager>();
         soundManager = FindObjectOfType<SoundManager>();
+
+        // Get reference to CameraShake
+        cameraShake = FindObjectOfType<CameraShake>();
     }
 
     void Update()
@@ -58,17 +72,26 @@ public class Player : MonoBehaviour
 
         if (Vector3.Distance(ball.position, serveManager.botServePosition.position) < 0.5f)
         {
-            canHitBall = true;  
+            canHitBall = true;
         }
 
         Vector3 moveDirection = new Vector3(h + moveInput.x, 0, v + moveInput.y);
 
         if (moveDirection != Vector3.zero && !hitting && staminaSystem.CanMove())
         {
+            // Disable the object when the player moves
+            if (objectToDisable != null && objectToDisable.activeSelf)
+            {
+                objectToDisable.SetActive(false);
+                StartCoroutine(EnableObject2AfterDelay()); // Start coroutine to enable object2 after a delay
+            }
+
             transform.Translate(moveDirection * speed * Time.deltaTime);
 
-            staminaSystem.DrainStamina(1f);
-
+            if (Time.frameCount % 5 == 0)  // Drain stamina every 5 frames instead of every frame
+            {
+                staminaSystem.DrainStamina(0.2f);  // Reduced drain rate to 0.2f
+            }
 
             Vector3 clampedPosition = transform.position;
             clampedPosition.x = Mathf.Clamp(clampedPosition.x, minX, maxX);
@@ -84,8 +107,6 @@ public class Player : MonoBehaviour
     public void OnMove(InputAction.CallbackContext ctx)
     {
         moveInput = ctx.ReadValue<Vector2>();
-        staminaSystem.DrainStamina(1f);
-
     }
 
     Vector3 PickRandomTargetWithinQuad()
@@ -108,10 +129,8 @@ public class Player : MonoBehaviour
     {
         if (other.CompareTag("Ball") && canHitBall)
         {
-            
             shotCounter++;
 
-            
             if (shotCounter % 4 == 0)
             {
                 currentShot = shotManager.flat;
@@ -128,7 +147,13 @@ public class Player : MonoBehaviour
 
             if (soundManager != null)
             {
-                soundManager.PlayHitSoundWithDelay(0f); 
+                soundManager.PlayHitSoundWithDelay(0f);
+            }
+
+            // Shake the camera when hitting the ball
+            if (cameraShake != null)
+            {
+                cameraShake.ShakeCamera();
             }
 
             if (ballDir.x >= 0)
@@ -147,7 +172,7 @@ public class Player : MonoBehaviour
 
     public void ResetPlayerPosition()
     {
-        canHitBall = false; 
+        canHitBall = false;
     }
 
     public void SetCanHitBall(bool value)
@@ -162,6 +187,16 @@ public class Player : MonoBehaviour
         else
             transform.position = serveRight.position;
 
-        servedRight = !servedRight;         
+        servedRight = !servedRight;
+    }
+
+    // Coroutine to enable object2 after a delay
+    IEnumerator EnableObject2AfterDelay()
+    {
+        yield return new WaitForSeconds(enableDelay);  // Wait for the specified delay
+        if (object2 != null)
+        {
+            object2.SetActive(true);  // Enable object2
+        }
     }
 }

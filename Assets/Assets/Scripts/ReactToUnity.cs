@@ -103,6 +103,8 @@ public class ReactToUnity : MonoBehaviour
             _Energy = _maxEnergy;
         }
         OnUpdateEnergy?.Invoke();
+
+        Debug.Log(Energy);
     }
     public void GiveEnergy_Unity()
     {

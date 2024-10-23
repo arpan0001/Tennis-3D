@@ -19,7 +19,7 @@ public class Ball : MonoBehaviour
     private SoundManager soundManager;
 
     [SerializeField] private GameObject objectToDisable1;
-    [SerializeField] private GameObject objectToDisable2;
+    
     [SerializeField] private GameObject objectToDisableOnSpace1; 
     
     private void Start()
@@ -84,10 +84,7 @@ public class Ball : MonoBehaviour
                     {
                         objectToDisable1.SetActive(false);
                     }
-                    if (objectToDisable2 != null)
-                    {
-                        objectToDisable2.SetActive(false);
-                    }
+                    
 
                     TossBall();
                     return true;

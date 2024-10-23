@@ -6,12 +6,10 @@ public class StaminaSystem : MonoBehaviour
     public Slider staminaSlider;    
     public Slider staminaSlider2;   
     public Slider staminaSlider3;   
-    //public float maxStamina = 100f;
-    //public float currentStamina;
-    public float staminaDrainRate = 10f; 
-    public float staminaRegenRate = 20f; 
+   
+    public float staminaDrainRate = 0.2f;  // Adjusted to slow down stamina drain
+    public float staminaRegenRate = 50f; 
 
-    private bool canMove = true;
     private ReactToUnity reactToUnity;
 
     private void Start()
@@ -35,43 +33,24 @@ public class StaminaSystem : MonoBehaviour
 
     private void Update()
     {
-        
+        // Optional: You can add stamina regeneration logic here if needed.
     }
 
     public bool CanMove()
     {
-        return canMove && ReactToUnity.instance._Energy > 0;
+        return ReactToUnity.instance._Energy > 0;
     }
 
     public void DrainStamina(float stamina)
     {
-        reactToUnity?.UseEnergy_Unity(Energy:(int)stamina);
+        float actualStaminaDrain = stamina * staminaDrainRate;  // Drain stamina based on the defined rate
+        reactToUnity?.UseEnergy_Unity(Energy: (int)actualStaminaDrain);
     }
 
     public void SetStamina()
     {
         staminaSlider.value = ReactToUnity.instance._Energy;
         staminaSlider2.value = ReactToUnity.instance._Energy;
-        staminaSlider3.value = ReactToUnity.instance._Energy; 
-        if (ReactToUnity.instance._Energy <= 0)
-        {
-            canMove = false;
-            
-        }
-
+        staminaSlider3.value = ReactToUnity.instance._Energy;
     }
-
-    // public void RegenerateStamina()
-    // {
-    //     if (currentStamina < maxStamina)
-    //     {
-    //         currentStamina += staminaRegenRate * Time.deltaTime;
-
-    //         if (currentStamina >= maxStamina)
-    //         {
-    //             currentStamina = maxStamina;
-    //             canMove = true;
-    //         }
-    //     }
-    // }
 }
