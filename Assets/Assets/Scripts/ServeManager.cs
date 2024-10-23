@@ -21,7 +21,7 @@ public class ServeManager : MonoBehaviour
         }
         
         
-        scoreManager.OnSetOver += HandleSetOver;
+       // scoreManager.OnSetOver += HandleSetOver;
     }
 
     
@@ -55,9 +55,9 @@ public class ServeManager : MonoBehaviour
         }
     }
 
-    private void OnDestroy()
+   /* private void OnDestroy()
     {
         
         scoreManager.OnSetOver -= HandleSetOver;
-    }
+    }*/
 }

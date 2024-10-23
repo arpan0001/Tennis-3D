@@ -1,141 +1,85 @@
 using UnityEngine;
-using TMPro; 
-using UnityEngine.UI; 
+using TMPro;
+using UnityEngine.UI;
 
 public class ScoreManager : MonoBehaviour
 {
     public static ScoreManager instance;
-    public delegate void SetOverAction();
-    public event SetOverAction OnSetOver; 
+    public delegate void GameOverAction();
+    public event GameOverAction OnGameOver;
 
-    public int Score; 
+    public int playerScore = 0;
+    public int botScore = 0;
+    public int pointsToWin = 10;  
 
+    [SerializeField] TextMeshProUGUI playerScoreText;
+    [SerializeField] TextMeshProUGUI botScoreText;
+    [SerializeField] TextMeshProUGUI winnerText;
 
-    int[] tennisScores = { 0, 15, 30, 40 };
-    int playerScoreIndex = 0;
-    int botScoreIndex = 0;
+    [SerializeField] Button tryAgainButton;
 
-    int playerSets = 0;
-    int botSets = 0;
-    int setsToWin = 2;
-
-    [SerializeField] TextMeshProUGUI[] playerScoreTexts;
-    [SerializeField] TextMeshProUGUI[] botScoreTexts;
-    [SerializeField] TextMeshProUGUI[] playerSet1ScoreTexts;
-    [SerializeField] TextMeshProUGUI[] botSet1ScoreTexts;
-    [SerializeField] TextMeshProUGUI[] playerSet2ScoreTexts;
-    [SerializeField] TextMeshProUGUI[] botSet2ScoreTexts;
-    [SerializeField] TextMeshProUGUI[] playerSet3ScoreTexts;
-    [SerializeField] TextMeshProUGUI[] botSet3ScoreTexts;
-    [SerializeField] TextMeshProUGUI[] winnerTexts;
-
-    [SerializeField] Button tryAgainButton1; 
-    [SerializeField] Button tryAgainButton2; 
-
-    [SerializeField] Button tryAgainButton3; 
-
-    
     private ReactToUnity reactToUnity;
 
     void Start()
     {
-        reactToUnity = ReactToUnity.instance; 
+        reactToUnity = ReactToUnity.instance;
 
-        tryAgainButton1.gameObject.SetActive(false);
-        tryAgainButton2.gameObject.SetActive(false);
-        tryAgainButton3.gameObject.SetActive(false);
-
-        tryAgainButton1.onClick.AddListener(TryAgain);
-        tryAgainButton2.onClick.AddListener(TryAgain);
-        tryAgainButton3.onClick.AddListener(TryAgain);
+        tryAgainButton.gameObject.SetActive(false);
+        tryAgainButton.onClick.AddListener(TryAgain);
+        UpdateUI();
     }
 
     public void UpdateScore(string hitter, bool netCollision = false)
+{
+    if (netCollision)
     {
-        if (netCollision)
+        if (hitter == "player")
         {
-            if (hitter == "player")
-            {
-                UpdateBotScore();
-            }
-            else if (hitter == "bot")
-            {
-                UpdatePlayerScore();
-            }
+            // Player hit the net, bot should score
+            UpdateBotScore();
         }
-        else
+        else if (hitter == "bot")
         {
-            if (hitter == "player")
-            {
-                UpdatePlayerScore();
-            }
-            else if (hitter == "bot")
-            {
-                UpdateBotScore();
-            }
+            // Bot hit the net, player should score
+            UpdatePlayerScore();
         }
-
-        UpdateUI();
-        CheckForMatchWinner();
     }
+    else
+    {
+        if (hitter == "player")
+        {
+            // Player wins the point
+            UpdatePlayerScore();
+        }
+        else if (hitter == "bot")
+        {
+            // Bot wins the point
+            UpdateBotScore();
+        }
+    }
+
+    UpdateUI();
+    CheckForWinner();
+}
+
 
     private void UpdatePlayerScore()
     {
-        if (playerScoreIndex < 3)
-        {
-            playerScoreIndex++;
-        }
-        else
-        {
-            SaveSetScore("player");
-            ResetScores();
-        }
+        playerScore++;
     }
 
     private void UpdateBotScore()
     {
-        if (botScoreIndex < 3)
-        {
-            botScoreIndex++;
-        }
-        else
-        {
-            SaveSetScore("bot");
-            ResetScores();
-        }
+        botScore++;
     }
 
-    private void SaveSetScore(string winner)
+    private void CheckForWinner()
     {
-        TextMeshProUGUI[] playerSetTexts = playerSets == 0 ? playerSet1ScoreTexts :
-                                           playerSets == 1 ? playerSet2ScoreTexts :
-                                           playerSets == 2 ? playerSet3ScoreTexts : playerSet3ScoreTexts;
-
-        TextMeshProUGUI[] botSetTexts = playerSets == 0 ? botSet1ScoreTexts :
-                                        playerSets == 1 ? botSet2ScoreTexts : botSet3ScoreTexts;
-
-        UpdateAllUI(playerSetTexts, tennisScores[playerScoreIndex].ToString());
-        UpdateAllUI(botSetTexts, tennisScores[botScoreIndex].ToString());
-
-        if (winner == "player")
-        {
-            playerSets++;
-        }
-        else if (winner == "bot")
-        {
-            botSets++;
-        }
-
-        OnSetOver?.Invoke();
-    }
-
-    private void CheckForMatchWinner()
-    {
-        if (playerSets >= setsToWin && playerSets > botSets)
+        if (playerScore >= pointsToWin)
         {
             DisplayWinner("Player");
         }
-        else if (botSets >= setsToWin && botSets > playerSets)
+        else if (botScore >= pointsToWin)
         {
             DisplayWinner("Bot");
         }
@@ -143,73 +87,27 @@ public class ScoreManager : MonoBehaviour
 
     private void DisplayWinner(string winner)
     {
-        UpdateAllUI(winnerTexts, winner + " Wins!");
-
+        winnerText.text = winner + " Wins!";
         
-        reactToUnity?.OnGameOver();
+        reactToUnity?.OnGameOver();  // Notify ReactToUnity that the game is over
 
-        tryAgainButton1.gameObject.SetActive(true);
-        tryAgainButton2.gameObject.SetActive(true);
-        tryAgainButton3.gameObject.SetActive(true);
-
-        
-    }
-
-    private void ResetScores()
-    {
-        playerScoreIndex = 0;
-        botScoreIndex = 0;
-        UpdateUI();
+        tryAgainButton.gameObject.SetActive(true);
+        OnGameOver?.Invoke();
     }
 
     private void UpdateUI()
     {
-        string playerScore = "Player: " + tennisScores[playerScoreIndex];
-        string botScore = "Bot: " + tennisScores[botScoreIndex];
-
-        UpdateAllUI(playerScoreTexts, playerScore);
-        UpdateAllUI(botScoreTexts, botScore);
-    }
-
-    private void UpdateAllUI(TextMeshProUGUI[] uiElements, string text)
-    {
-        foreach (TextMeshProUGUI uiElement in uiElements)
-        {
-            if (uiElement != null)
-            {
-                uiElement.text = text;
-            }
-        }
+        playerScoreText.text = "Player: " + playerScore;
+        botScoreText.text = "Bot: " + botScore;
     }
 
     public void TryAgain()
     {
-        playerSets = 0;
-        botSets = 0;
-        playerScoreIndex = 0;
-        botScoreIndex = 0;
-
+        playerScore = 0;
+        botScore = 0;
         UpdateUI();
-        tryAgainButton1.gameObject.SetActive(false);
-        tryAgainButton2.gameObject.SetActive(false);
-        tryAgainButton3.gameObject.SetActive(false);
 
-        ClearWinnerText();
-        ResetSetScoresUI();
-    }
-
-    private void ClearWinnerText()
-    {
-        UpdateAllUI(winnerTexts, "");
-    }
-
-    private void ResetSetScoresUI()
-    {
-        UpdateAllUI(playerSet1ScoreTexts, "0");
-        UpdateAllUI(botSet1ScoreTexts, "0");
-        UpdateAllUI(playerSet2ScoreTexts, "0");
-        UpdateAllUI(botSet2ScoreTexts, "0");
-        UpdateAllUI(playerSet3ScoreTexts, "0");
-        UpdateAllUI(botSet3ScoreTexts, "0");
+        tryAgainButton.gameObject.SetActive(false);
+        winnerText.text = "";
     }
 }

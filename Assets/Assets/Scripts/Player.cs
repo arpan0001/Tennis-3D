@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.InputSystem;
-using System.Collections;  // Needed for Coroutines
+using System.Collections;
 
 public class Player : MonoBehaviour
 {
@@ -42,6 +42,9 @@ public class Player : MonoBehaviour
 
     // Reference to the CameraShake script
     private CameraShake cameraShake;
+
+    // Reference to the particle system
+    [SerializeField] private ParticleSystem hitParticleEffect;
 
     private void Awake()
     {
@@ -154,6 +157,13 @@ public class Player : MonoBehaviour
             if (cameraShake != null)
             {
                 cameraShake.ShakeCamera();
+            }
+
+            // Play particle effect when hitting the ball
+            if (hitParticleEffect != null)
+            {
+                hitParticleEffect.Stop();  // Stop the particle effect to reset it
+                hitParticleEffect.Play();  // Play the particle effect
             }
 
             if (ballDir.x >= 0)
