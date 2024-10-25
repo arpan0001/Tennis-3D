@@ -66,7 +66,7 @@ public class ReactToUnity : MonoBehaviour
     public void OnGameOver()
     {
 #if UNITY_WEBGL && !UNITY_EDITOR
-            GameOver_React(ScoreManager.instance.Score);
+            GameOver_React(GameManager.instance.Score);
 #endif
     }
 
@@ -103,13 +103,8 @@ public class ReactToUnity : MonoBehaviour
             _Energy = _maxEnergy;
         }
         OnUpdateEnergy?.Invoke();
-
-        Debug.Log(Energy);
     }
-    public void GiveEnergy_Unity()
-    {
-        GiveEnergy_Unity(6);
-    }
+   
     public void SetEnergy_Unity(int energy)
     {
         _Energy = energy;

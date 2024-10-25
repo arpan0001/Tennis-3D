@@ -10,7 +10,7 @@ public class ScoreManager : MonoBehaviour
 
     public int playerScore = 0;
     public int botScore = 0;
-    public int pointsToWin = 10;  
+    public int pointsToWin = 10;
 
     [SerializeField] TextMeshProUGUI playerScoreText;
     [SerializeField] TextMeshProUGUI botScoreText;
@@ -23,45 +23,43 @@ public class ScoreManager : MonoBehaviour
     void Start()
     {
         reactToUnity = ReactToUnity.instance;
-
+        ReactToUnity.OnUpdateQuizScore += UpdateQuizScore; // Subscribe to the event
         tryAgainButton.gameObject.SetActive(false);
         tryAgainButton.onClick.AddListener(TryAgain);
         UpdateUI();
     }
 
     public void UpdateScore(string hitter, bool netCollision = false)
-{
-    if (netCollision)
     {
-        if (hitter == "player")
+        if (netCollision)
         {
-            // Player hit the net, bot should score
-            UpdateBotScore();
+            if (hitter == "player")
+            {
+                UpdateBotScore();
+            }
+            else if (hitter == "bot")
+            {
+                UpdatePlayerScore();
+            }
         }
-        else if (hitter == "bot")
+        else
         {
-            // Bot hit the net, player should score
-            UpdatePlayerScore();
+            if (hitter == "player")
+            {
+                UpdatePlayerScore();
+            }
+            else if (hitter == "bot")
+            {
+                UpdateBotScore();
+            }
         }
-    }
-    else
-    {
-        if (hitter == "player")
-        {
-            // Player wins the point
-            UpdatePlayerScore();
-        }
-        else if (hitter == "bot")
-        {
-            // Bot wins the point
-            UpdateBotScore();
-        }
-    }
 
-    UpdateUI();
-    CheckForWinner();
-}
+        // Call energy usage after each score
+        reactToUnity.UseEnergy_Unity(1);
 
+        UpdateUI();
+        CheckForWinner();
+    }
 
     private void UpdatePlayerScore()
     {
@@ -89,7 +87,7 @@ public class ScoreManager : MonoBehaviour
     {
         winnerText.text = winner + " Wins!";
         
-        reactToUnity?.OnGameOver();  // Notify ReactToUnity that the game is over
+        reactToUnity?.OnGameOver();  
 
         tryAgainButton.gameObject.SetActive(true);
         OnGameOver?.Invoke();
@@ -105,9 +103,20 @@ public class ScoreManager : MonoBehaviour
     {
         playerScore = 0;
         botScore = 0;
-        UpdateUI();
+       
+        reactToUnity.SetEnergy_Unity(reactToUnity._maxEnergy);  // Reset energy
 
+        UpdateUI();
         tryAgainButton.gameObject.SetActive(false);
         winnerText.text = "";
+    }
+
+    public void UpdateQuizScore(int amount)
+    {
+        if (amount > 0) // Check if the amount is greater than 0
+        {
+            playerScore += amount;
+            UpdateUI();
+        }
     }
 }

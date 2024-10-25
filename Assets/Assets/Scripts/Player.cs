@@ -45,6 +45,7 @@ public class Player : MonoBehaviour
 
     // Reference to the particle system
     [SerializeField] private ParticleSystem hitParticleEffect;
+    [SerializeField] private ParticleSystem movementParticle;
 
     private void Awake()
     {
@@ -82,6 +83,11 @@ public class Player : MonoBehaviour
 
         if (moveDirection != Vector3.zero && !hitting && staminaSystem.CanMove())
         {
+             if (!movementParticle.isPlaying)
+            {
+                movementParticle.Play();
+            }
+
             // Disable the object when the player moves
             if (objectToDisable != null && objectToDisable.activeSelf)
             {
@@ -99,6 +105,12 @@ public class Player : MonoBehaviour
             Vector3 clampedPosition = transform.position;
             clampedPosition.x = Mathf.Clamp(clampedPosition.x, minX, maxX);
             transform.position = clampedPosition;
+        }
+        else{
+             if (movementParticle.isPlaying)
+            {
+                movementParticle.Stop();
+            }
         }
 
         if (Input.GetKeyDown(KeyCode.Space))
