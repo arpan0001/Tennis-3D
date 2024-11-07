@@ -14,10 +14,10 @@ public class Tutorial : MonoBehaviour
 
    void Start()
    {
-       // Scale the TapToPlay text
-       LeanTween.scale(TapToPlay.gameObject, new Vector3(0.2f, 0.6f, 0.6f), 1f).setLoopPingPong().setEaseInOutQuad();
+       
+       LeanTween.scale(TapToPlay.gameObject, new Vector3(0.3f, 0.7f, 0.7f), 1f).setLoopPingPong().setEaseInOutQuad();
 
-       // Move the Hand_Ico
+       
        LeanTween.move(Hand_Ico.GetComponent<RectTransform>(), new Vector2(-17f, -27f), 1f).setLoopPingPong().setEaseInOutQuad();
    }
 
@@ -38,11 +38,11 @@ public class Tutorial : MonoBehaviour
    {
        gameStarted = true;
 
-       // Stop animations
+    
        LeanTween.cancel(TapToPlay.gameObject);
        LeanTween.cancel(Hand_Ico.GetComponent<RectTransform>());
 
-      // TapToPlay.gameObject.SetActive(false);
+      
        Hand_Ico.SetActive(false);
        Tap_line.SetActive(false);
 

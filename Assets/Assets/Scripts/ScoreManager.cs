@@ -30,38 +30,60 @@ public class ScoreManager : MonoBehaviour
         UpdateUI();
     }
 
-    public void UpdateScore(string hitter, bool netCollision = false)
+  public void UpdateScore(string hitter, bool netCollision = false, bool outOfBounds = false)
+ {
+    // Check if the point is due to a net collision
+    if (netCollision)
     {
-        if (netCollision)
+        // Award point to the opponent of the hitter
+        if (hitter == "player")
         {
-            if (hitter == "player")
-            {
-                UpdateBotScore();
-            }
-            else if (hitter == "bot")
-            {
-                UpdatePlayerScore();
-            }
+            UpdateBotScore();
         }
-        else
+        else if (hitter == "bot")
         {
-            if (hitter == "player")
-            {
-                UpdatePlayerScore();
-            }
-            else if (hitter == "bot")
-            {
-                UpdateBotScore();
-            }
+            UpdatePlayerScore();
         }
-
-        
-        reactToUnity.UseEnergy_Unity(1);
-
-        UpdateUI();
-        CheckForWinner();
-        CheckScoreConditions(); 
     }
+    // Check if the point is due to the ball going out of bounds
+    else if (outOfBounds)
+    {
+        // Award point to the opponent of the hitter
+        if (hitter == "player")
+        {
+            UpdateBotScore();
+        }
+        else if (hitter == "bot")
+        {
+            UpdatePlayerScore();
+        }
+    }
+    // Otherwise, award point to the hitter for a successful play
+    else
+    {
+        if (hitter == "player")
+        {
+            UpdatePlayerScore();
+        }
+        else if (hitter == "bot")
+        {
+            UpdateBotScore();
+        }
+    }
+
+    // Consume energy for each score update
+    reactToUnity.UseEnergy_Unity(1);
+
+    // Update the game UI to reflect the new score
+    UpdateUI();
+
+    // Check if the game has a winner
+    CheckForWinner();
+
+    // Check for any additional score conditions
+    CheckScoreConditions();
+ }
+
 
     private void UpdatePlayerScore()
     {
