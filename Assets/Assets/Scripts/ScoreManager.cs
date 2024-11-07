@@ -17,13 +17,14 @@ public class ScoreManager : MonoBehaviour
     [SerializeField] TextMeshProUGUI winnerText;
 
     [SerializeField] Button tryAgainButton;
+    [SerializeField] GameObject toggleObject; 
 
     private ReactToUnity reactToUnity;
 
     void Start()
     {
         reactToUnity = ReactToUnity.instance;
-        ReactToUnity.OnUpdateQuizScore += UpdateQuizScore; // Subscribe to the event
+        ReactToUnity.OnUpdateQuizScore += UpdateQuizScore; 
         tryAgainButton.gameObject.SetActive(false);
         tryAgainButton.onClick.AddListener(TryAgain);
         UpdateUI();
@@ -54,11 +55,12 @@ public class ScoreManager : MonoBehaviour
             }
         }
 
-        // Call energy usage after each score
+        
         reactToUnity.UseEnergy_Unity(1);
 
         UpdateUI();
         CheckForWinner();
+        CheckScoreConditions(); 
     }
 
     private void UpdatePlayerScore()
@@ -104,19 +106,32 @@ public class ScoreManager : MonoBehaviour
         playerScore = 0;
         botScore = 0;
        
-        reactToUnity.SetEnergy_Unity(reactToUnity._maxEnergy);  // Reset energy
+        reactToUnity.SetEnergy_Unity(reactToUnity._maxEnergy);  
 
         UpdateUI();
         tryAgainButton.gameObject.SetActive(false);
         winnerText.text = "";
     }
 
+    private void CheckScoreConditions()
+    {
+        if (playerScore % 3 == 0 && playerScore != 0)
+        {
+            toggleObject.SetActive(true); 
+        }
+        if (botScore % 2 == 0 && botScore != 0)
+        {
+            toggleObject.SetActive(false); 
+        }
+    }
+
     public void UpdateQuizScore(int amount)
     {
-        if (amount > 0) // Check if the amount is greater than 0
+        if (amount > 0) 
         {
             playerScore += amount;
             UpdateUI();
+            CheckScoreConditions(); 
         }
     }
 }
